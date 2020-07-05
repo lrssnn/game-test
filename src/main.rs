@@ -13,7 +13,7 @@ fn main() {
     let mut engine = console_engine::ConsoleEngine::init(WIDTH,HEIGHT,30);
 
     let mut t: f32 = 0.0;
-    let inc = 0.1;
+    let inc = 0.05;
 
     let mut xs = vec![];
     let mut ys = vec![];
@@ -36,10 +36,23 @@ fn main() {
         engine.set_pxl(WIDTHI,HEIGHTI, pixel::pxl('+'));
 
         // Add a new point 
+        /* Sine Wave
         let t_i = (t * 5.0).floor() as i32;
         let s_i = (t.sin() * 15.0).floor() as i32;
         let x = t_i;
         let y = (HEIGHTI / 2) + s_i;
+        xs.push(x);
+        ys.push(y);
+        */
+
+        //Spiral
+        const CENTREX: i32 = WIDTHI / 2;
+        const CENTREY: i32 = HEIGHTI / 2;
+
+        let s_i = (t.sin() * t * 3.0).floor() as i32;
+        let c_i = (t.cos() * t * 1.5).floor() as i32;
+        let x = CENTREX + s_i;
+        let y = CENTREY + c_i;
         xs.push(x);
         ys.push(y);
 
