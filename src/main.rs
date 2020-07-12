@@ -2,7 +2,14 @@ use console_engine::pixel;
 use console_engine::Color;
 use console_engine::KeyCode;
 
+use std::collections::HashMap;
+
 use rand::prelude::*;
+
+mod pitcher;
+
+use pitcher::*;
+use pitcher::pitch::PitchType;
 
 fn main() {
     // Constants - I fear I have gone overboard with short names, but their usage in below makes it very challenging
@@ -24,6 +31,27 @@ fn main() {
     const STRK_ENDX:i32 = BUFF_X  + STRK_WDTH as i32;
     const STRK_ENDY:i32 = BUFF_Y + STRK_HGHT as i32;
 
+    let mut pitchbook: HashMap<pitcher::pitch::PitchType, f32> = HashMap::new();
+    pitchbook.insert(PitchType::Fastball, 0.7);
+    pitchbook.insert(PitchType::Curveball, 0.3);
+    let pitcher = build_pitcher(pitchbook, 100.0, 100.0);
+
+    let mut f = 0;
+    let mut c = 0;
+
+    for i in 0..1000 {
+        let pitch = pitcher.generate_pitch();
+        //println!("Pitch: {:?}", pitch);
+        match pitch.pitchType {
+            PitchType::Fastball => f += 1,
+            PitchType::Curveball => c += 1,
+            PitchType::None => println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        }
+    }
+
+    println!("Fast: {}, Curve: {}", f as f32 / 1000.0, c as f32 / 1000.0);
+
+    /*
     // Initialise the screen - Add 1 to sizes to avoid -1 to all uses of SCR_X/Y below
     let mut engine = console_engine::ConsoleEngine::init(SCR_X as u32 + 1, SCR_Y as u32 + 1, 1);
 
@@ -80,4 +108,5 @@ fn main() {
         // Draw
         engine.draw();
     }
+    */
 }
