@@ -10,3 +10,10 @@ I think we should start by thinking about a pitch:
 5. Hitter decides when to swing (or not). I'd probably start with high-mid-low, out-mid-in, and a timing (based on guessed pitch speed). All right, cracking hit, above the pitch is a popup, below is a tip, off horizontally is likely a foul...
 6. If the ball is hit, we need to determine the trajectory. Probably ambitious to do this physically - look at the above factors and determine a direction and a launch angle. From this we get landing spot and time taken.
 7. Determine fielder actions. Simple for nobody on, the correct actions for multiple people on is complicated...
+
+
+## Program Structure
+After some experimenting, I think the program should be structered as so:
+
+I see the UI being multiple panels, e.g. A panel which displays the pictch in the strike zone, a panel which shows the fielders and runners on the field, a panel with text output (play-by-play details etc).
+We should have a "Game State" struct which contains everything about the game. I think this class should also hold the logic for the gameplay. Then multiple subscreens can just take that struct and render whatever part they care about.

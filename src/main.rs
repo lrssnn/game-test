@@ -1,6 +1,7 @@
 use console_engine::pixel;
 use console_engine::Color;
 use console_engine::KeyCode;
+use console_engine::screen;
 
 use std::collections::HashMap;
 
@@ -49,27 +50,29 @@ fn main() {
         engine.wait_frame();
         engine.clear_screen();
 
+        let mut strike_screen = screen::Screen::new(SCR_X as u32 + 1, SCR_Y as u32 + 1);
+
         //Draw The Screen Boundary
-        engine.line(0,     0,     SCR_X, 0,     pixel::pxl('='));
-        engine.line(0,     SCR_Y, SCR_X, SCR_Y, pixel::pxl('='));
-        engine.line(0,     0,     0,     SCR_Y, pixel::pxl('║'));
-        engine.line(SCR_X, 0,     SCR_X, SCR_Y, pixel::pxl('║'));
+        strike_screen.line(0,     0,     SCR_X, 0,     pixel::pxl('='));
+        strike_screen.line(0,     SCR_Y, SCR_X, SCR_Y, pixel::pxl('='));
+        strike_screen.line(0,     0,     0,     SCR_Y, pixel::pxl('║'));
+        strike_screen.line(SCR_X, 0,     SCR_X, SCR_Y, pixel::pxl('║'));
         //Corners
-        engine.set_pxl(0,     0,     pixel::pxl('+'));
-        engine.set_pxl(0,     SCR_Y, pixel::pxl('+'));
-        engine.set_pxl(SCR_X, 0,     pixel::pxl('+'));
-        engine.set_pxl(SCR_X, SCR_Y, pixel::pxl('+'));
+        strike_screen.set_pxl(0,     0,     pixel::pxl('+'));
+        strike_screen.set_pxl(0,     SCR_Y, pixel::pxl('+'));
+        strike_screen.set_pxl(SCR_X, 0,     pixel::pxl('+'));
+        strike_screen.set_pxl(SCR_X, SCR_Y, pixel::pxl('+'));
 
         //Draw The Strike Zone
-        engine.line(BUFF_X,    BUFF_Y,    STRK_ENDX, BUFF_Y,     pixel::pxl('-'));
-        engine.line(BUFF_X,    STRK_ENDY, STRK_ENDX, STRK_ENDY,  pixel::pxl('-'));
-        engine.line(BUFF_X,    BUFF_Y,    BUFF_X,    STRK_ENDY,  pixel::pxl('|'));
-        engine.line(STRK_ENDX, BUFF_Y,    STRK_ENDX, STRK_ENDY,  pixel::pxl('|'));
+        strike_screen.line(BUFF_X,    BUFF_Y,    STRK_ENDX, BUFF_Y,     pixel::pxl('-'));
+        strike_screen.line(BUFF_X,    STRK_ENDY, STRK_ENDX, STRK_ENDY,  pixel::pxl('-'));
+        strike_screen.line(BUFF_X,    BUFF_Y,    BUFF_X,    STRK_ENDY,  pixel::pxl('|'));
+        strike_screen.line(STRK_ENDX, BUFF_Y,    STRK_ENDX, STRK_ENDY,  pixel::pxl('|'));
         //Corners
-        engine.set_pxl(BUFF_X,    BUFF_Y,     pixel::pxl('+'));
-        engine.set_pxl(BUFF_X,    STRK_ENDY,  pixel::pxl('+'));
-        engine.set_pxl(STRK_ENDX, BUFF_Y,     pixel::pxl('+'));
-        engine.set_pxl(STRK_ENDX, STRK_ENDY,  pixel::pxl('+'));
+        strike_screen.set_pxl(BUFF_X,    BUFF_Y,    pixel::pxl('+'));
+        strike_screen.set_pxl(BUFF_X,    STRK_ENDY, pixel::pxl('+'));
+        strike_screen.set_pxl(STRK_ENDX, BUFF_Y,    pixel::pxl('+'));
+        strike_screen.set_pxl(STRK_ENDX, STRK_ENDY, pixel::pxl('+'));
 
         let pitch = pitcher.generate_pitch();
 
@@ -80,12 +83,14 @@ fn main() {
         let target_x: i32 = (pitch.aim_x * SCR_X as f32) as i32;
         let target_y: i32 = (pitch.aim_y * SCR_Y as f32) as i32;
 
-        engine.print(0,0, format!("{},{} -> {},{}", pitch.aim_x, pitch.aim_y, target_x, target_y).as_str());
-        engine.print(0,1, format!("{},{} -> {},{}", pitch.loc_x, pitch.loc_y, pitch_x, pitch_y).as_str());
+        strike_screen.print(0,0, format!("{},{} -> {},{}", pitch.aim_x, pitch.aim_y, target_x, target_y).as_str());
+        strike_screen.print(0,1, format!("{},{} -> {},{}", pitch.loc_x, pitch.loc_y, pitch_x, pitch_y).as_str());
 
-        engine.set_pxl(pitch_x, pitch_y, pixel::pxl('o'));
-        engine.set_pxl(target_x, target_y, pixel::pxl('x'));
+        strike_screen.set_pxl(pitch_x, pitch_y, pixel::pxl('o'));
+        strike_screen.set_pxl(target_x, target_y, pixel::pxl('x'));
 
+        // Draw the subscreen
+        engine.print_screen(0, 0, &strike_screen);
 
         // Quit on 'q'
         if engine.is_key_pressed(KeyCode::Char('q')) {
