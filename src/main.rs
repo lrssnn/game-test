@@ -31,27 +31,12 @@ fn main() {
     const STRK_ENDX:i32 = BUFF_X  + STRK_WDTH as i32;
     const STRK_ENDY:i32 = BUFF_Y + STRK_HGHT as i32;
 
+    // Create A pitcher
     let mut pitchbook: HashMap<pitcher::pitch::PitchType, f32> = HashMap::new();
     pitchbook.insert(PitchType::Fastball, 0.7);
     pitchbook.insert(PitchType::Curveball, 0.3);
     let pitcher = build_pitcher(pitchbook, 100.0, 100.0);
 
-    let mut f = 0;
-    let mut c = 0;
-
-    for i in 0..1000 {
-        let pitch = pitcher.generate_pitch();
-        //println!("Pitch: {:?}", pitch);
-        match pitch.pitchType {
-            PitchType::Fastball => f += 1,
-            PitchType::Curveball => c += 1,
-            PitchType::None => println!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        }
-    }
-
-    println!("Fast: {}, Curve: {}", f as f32 / 1000.0, c as f32 / 1000.0);
-
-    /*
     // Initialise the screen - Add 1 to sizes to avoid -1 to all uses of SCR_X/Y below
     let mut engine = console_engine::ConsoleEngine::init(SCR_X as u32 + 1, SCR_Y as u32 + 1, 1);
 
@@ -86,18 +71,20 @@ fn main() {
         engine.set_pxl(STRK_ENDX, BUFF_Y,     pixel::pxl('+'));
         engine.set_pxl(STRK_ENDX, STRK_ENDY,  pixel::pxl('+'));
 
-        // Add a new point 
-        let target_x = STRK_WDTH * random::<f32>();
-        let target_y = STRK_HGHT * random::<f32>(); 
+        let pitch = pitcher.generate_pitch();
 
-        // TODO: Add Miss chance
-        let acc_x = 0.0;
-        let acc_y = 0.0;
+        // Convert pitch locations (0-1) to screenspace 
+        let pitch_x: i32 = (pitch.loc_x * SCR_X as f32) as i32;
+        let pitch_y: i32 = (pitch.loc_y * SCR_Y as f32) as i32;
 
-        let pitch_x = (target_x + acc_x) as i32;
-        let pitch_y = (target_y + acc_y) as i32;
+        let target_x: i32 = (pitch.aim_x * SCR_X as f32) as i32;
+        let target_y: i32 = (pitch.aim_y * SCR_Y as f32) as i32;
+
+        engine.print(0,0, format!("{},{} -> {},{}", pitch.aim_x, pitch.aim_y, target_x, target_y).as_str());
+        engine.print(0,1, format!("{},{} -> {},{}", pitch.loc_x, pitch.loc_y, pitch_x, pitch_y).as_str());
 
         engine.set_pxl(pitch_x, pitch_y, pixel::pxl('o'));
+        engine.set_pxl(target_x, target_y, pixel::pxl('x'));
 
 
         // Quit on 'q'
@@ -108,5 +95,4 @@ fn main() {
         // Draw
         engine.draw();
     }
-    */
 }
