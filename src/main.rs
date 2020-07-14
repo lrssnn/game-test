@@ -1,7 +1,7 @@
 use console_engine::pixel;
 use console_engine::Color;
 use console_engine::KeyCode;
-use console_engine::screen;
+use console_engine::screen::Screen;
 
 use std::collections::HashMap;
 
@@ -12,47 +12,52 @@ mod pitcher;
 use pitcher::*;
 use pitcher::pitch::PitchType;
 
+// Constants - I fear I have gone overboard with short names, but their usage in below makes it very challenging
+// STRIKE_WIDTH is so long that the line functions become enormous.
+// Buffer size - space between screen edge and strike zone edge - Applied on either side
+const BUFF_X: i32 = 8;
+const BUFF_Y: i32 = 5;
+
+// Strike Zone Size - float to allow aiming maths to be fuzzy
+const STRK_WDTH: f32 = 16.0;
+const STRK_HGHT: f32 = 10.0;
+
+// Screen Size - Simply the strike zone with buffer either side
+const SCR_X: i32 = STRK_WDTH as i32 + BUFF_X * 2;
+const SCR_Y: i32 = STRK_HGHT as i32 + BUFF_Y * 2;
+
+// Strike zone end boundaries - Right/Bottom edges
+const STRK_ENDX:i32 = BUFF_X  + STRK_WDTH as i32;
+const STRK_ENDY:i32 = BUFF_Y + STRK_HGHT as i32;
+
 fn main() {
-    // Constants - I fear I have gone overboard with short names, but their usage in below makes it very challenging
-    // STRIKE_WIDTH is so long that the line functions become enormous.
-    
-    // Buffer size - space between screen edge and strike zone edge - Applied on either side
-    const BUFF_X: i32 = 8;
-    const BUFF_Y: i32 = 5;
 
-    // Strike Zone Size - float to allow aiming maths to be fuzzy
-    const STRK_WDTH: f32 = 16.0;
-    const STRK_HGHT: f32 = 10.0;
-
-    // Screen Size - Simply the strike zone with buffer either side
-    const SCR_X: i32 = STRK_WDTH as i32 + BUFF_X * 2;
-    const SCR_Y: i32 = STRK_HGHT as i32 + BUFF_Y * 2;
-    
-    // Strike zone end boundaries - Right/Bottom edges
-    const STRK_ENDX:i32 = BUFF_X  + STRK_WDTH as i32;
-    const STRK_ENDY:i32 = BUFF_Y + STRK_HGHT as i32;
-
-    // Create A pitcher
-    let mut pitchbook: HashMap<pitcher::pitch::PitchType, f32> = HashMap::new();
-    pitchbook.insert(PitchType::Fastball, 0.7);
-    pitchbook.insert(PitchType::Curveball, 0.3);
-    let pitcher = build_pitcher(pitchbook, 100.0, 100.0);
 
     // Initialise the screen - Add 1 to sizes to avoid -1 to all uses of SCR_X/Y below
     let mut engine = console_engine::ConsoleEngine::init(SCR_X as u32 + 1, SCR_Y as u32 + 1, 1);
-
-    //let mut pitches = vec![];
-
-    let mut rng = rand::thread_rng();
 
     loop {
         // Wait for next frame + capture input
         engine.wait_frame();
         engine.clear_screen();
 
-        let mut strike_screen = screen::Screen::new(SCR_X as u32 + 1, SCR_Y as u32 + 1);
+        // Draw the subscreen
+        engine.print_screen(0, 0, &draw_strike_zone_screen());
 
-        //Draw The Screen Boundary
+        // Quit on 'q'
+        if engine.is_key_pressed(KeyCode::Char('q')) {
+            break;
+        }
+
+        // Draw
+        engine.draw();
+    }
+}
+
+fn draw_strike_zone_screen() -> Screen {
+        let mut strike_screen = Screen::new(SCR_X as u32 + 1, SCR_Y as u32 + 1);
+
+        //Draw The Strike Panel Boundary
         strike_screen.line(0,     0,     SCR_X, 0,     pixel::pxl('='));
         strike_screen.line(0,     SCR_Y, SCR_X, SCR_Y, pixel::pxl('='));
         strike_screen.line(0,     0,     0,     SCR_Y, pixel::pxl('║'));
@@ -74,6 +79,11 @@ fn main() {
         strike_screen.set_pxl(STRK_ENDX, BUFF_Y,    pixel::pxl('+'));
         strike_screen.set_pxl(STRK_ENDX, STRK_ENDY, pixel::pxl('+'));
 
+        // Create A pitcher
+        let mut pitchbook: HashMap<pitcher::pitch::PitchType, f32> = HashMap::new();
+        pitchbook.insert(PitchType::Fastball, 0.7);
+        pitchbook.insert(PitchType::Curveball, 0.3);
+        let pitcher = build_pitcher(pitchbook, 100.0, 100.0);
         let pitch = pitcher.generate_pitch();
 
         // Convert pitch locations (0-1) to screenspace 
@@ -89,15 +99,5 @@ fn main() {
         strike_screen.set_pxl(pitch_x, pitch_y, pixel::pxl('o'));
         strike_screen.set_pxl(target_x, target_y, pixel::pxl('x'));
 
-        // Draw the subscreen
-        engine.print_screen(0, 0, &strike_screen);
-
-        // Quit on 'q'
-        if engine.is_key_pressed(KeyCode::Char('q')) {
-            break;
-        }
-
-        // Draw
-        engine.draw();
-    }
+        strike_screen
 }
